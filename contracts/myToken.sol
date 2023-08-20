@@ -1,45 +1,58 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 contract Token {
-    // Public variables here
-    string public tokenName = "RACING";
-    string public abbrv = "RCR";
-    uint public totalSupply = 0;
+    string public name = "RACING";
+    string public symbol = "RCR";
+    uint8 public decimals = 18;
+    uint256 public totalSupply;
     address public owner;
 
-    // Mapping variable here
-    mapping(address => uint) public balances;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
 
-    // Constructor to set the contract owner
-    constructor() {
-        owner = msg.sender;
-    }
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    // Modifier to restrict access to the owner
     modifier onlyOwner() {
         require(msg.sender == owner, "Only the contract owner can call this function");
         _;
     }
 
-    // Mint function (only owner can use)
-    function mint(address _address, uint _value) public onlyOwner {
-        totalSupply += _value;
-        balances[_address] += _value;
+    constructor(uint256 initialSupply) {
+        owner = msg.sender;
+        totalSupply = initialSupply * 10 ** uint256(decimals);
+        balanceOf[msg.sender] = totalSupply;
     }
 
-    // Burn function
-    function burn(address _address, uint _value) public {
-        require(balances[_address] >= _value, "Insufficient balance");
-        totalSupply -= _value;
-        balances[_address] -= _value;
+    function transfer(address to, uint256 value) public returns (bool success) {
+        require(to != address(0), "Invalid address");
+        require(balanceOf[msg.sender] >= value, "Insufficient balance");
+
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
     }
 
-    // Transfer function
-    function transfer(address _to, uint _value) public {
-        require(balances[msg.sender] >= _value, "Insufficient balance");
-        balances[msg.sender] -= _value;
-        balances[_to] += _value;
+    function approve(address spender, uint256 value) public returns (bool success) {
+        require(spender != address(0), "Invalid address");
+
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 value) public returns (bool success) {
+        require(from != address(0), "Invalid address");
+        require(to != address(0), "Invalid address");
+        require(balanceOf[from] >= value, "Insufficient balance");
+        require(allowance[from][msg.sender] >= value, "Allowance exceeded");
+
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
+        allowance[from][msg.sender] -= value;
+        emit Transfer(from, to, value);
+        return true;
     }
 }
