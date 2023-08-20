@@ -1,46 +1,44 @@
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 contract Token {
-    // public variables here
-    string public tokenName = "RAMANUJA";
-    string public abbrv = "LKP";
+    // Public variables here
+    string public tokenName = "RACING";
+    string public abbrv = "RCR";
     uint public totalSupply = 0;
     address public owner;
 
-    // mapping variable here
+    // Mapping variable here
     mapping(address => uint) public balances;
 
-    // Modifier to check if the caller is the owner
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only the owner can perform this action");
-        _;
-    }
-
-    // Constructor to set the owner
+    // Constructor to set the contract owner
     constructor() {
         owner = msg.sender;
     }
 
-    // mint function
+    // Modifier to restrict access to the owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the contract owner can call this function");
+        _;
+    }
+
+    // Mint function (only owner can use)
     function mint(address _address, uint _value) public onlyOwner {
         totalSupply += _value;
         balances[_address] += _value;
     }
 
-    // burn function
-    function burn(address _address, uint _value) public onlyOwner {
-        if (balances[_address] >= _value) {
-            totalSupply -= _value;
-            balances[_address] -= _value;
-        }
+    // Burn function
+    function burn(address _address, uint _value) public {
+        require(balances[_address] >= _value, "Insufficient balance");
+        totalSupply -= _value;
+        balances[_address] -= _value;
     }
 
-    // transfer function
+    // Transfer function
     function transfer(address _to, uint _value) public {
-        require(_to != address(0), "Invalid address");
-        require(_value <= balances[msg.sender], "Insufficient balance");
-        
+        require(balances[msg.sender] >= _value, "Insufficient balance");
         balances[msg.sender] -= _value;
         balances[_to] += _value;
     }
